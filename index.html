@@ -2,77 +2,68 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小学奥数通 - Primary Math Olympia</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans">
-    <nav class="bg-blue-600 text-white p-4 shadow-lg">
+<body class="bg-slate-50 min-h-screen">
+    <nav class="bg-blue-600 text-white p-4">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold">Primary Math Olympia</h1>
-            <div id="grade-selector" class="space-x-2">
-                <select id="gradeSelect" class="bg-blue-700 p-2 rounded">
-                    <option value="G1">一年级</option>
-                    <option value="G2">二年级</option>
-                    <option value="G3">三年级</option>
-                    <option value="G4">四年级</option>
-                    <option value="G5">五年级</option>
-                    <option value="G6">六年级</option>
-                </select>
-            </div>
+            <select id="gradeSelect" class="bg-blue-700 p-2 rounded outline-none border-none text-white">
+                <option value="G1">一年级</option>
+                <option value="G2">二年级</option>
+                <option value="G3">三年级</option>
+                <option value="G4">四年级</option>
+                <option value="G5">五年级</option>
+                <option value="G6">六年级</option>
+            </select>
         </div>
     </nav>
 
     <main class="container mx-auto p-6">
-        <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-            <button onclick="loadTopic('Arithmetic')" class="bg-white p-4 rounded shadow hover:bg-blue-50 transition">计算技巧</button>
-            <button onclick="loadTopic('Logic')" class="bg-white p-4 rounded shadow hover:bg-blue-50 transition">逻辑推理</button>
-            <button onclick="loadTopic('Geometry')" class="bg-white p-4 rounded shadow hover:bg-blue-50 transition">几何图形</button>
-            <button onclick="loadTopic('NumberTheory')" class="bg-white p-4 rounded shadow hover:bg-blue-50 transition">数论基础</button>
-            <button onclick="loadTopic('WordProblems')" class="bg-white p-4 rounded shadow hover:bg-blue-50 transition">应用题</button>
-            <button onclick="loadTopic('Combinatorics')" class="bg-white p-4 rounded shadow hover:bg-blue-50 transition">组合数学</button>
+        <div class="flex flex-wrap gap-3 justify-center mb-10">
+            <button onclick="loadTopic('Arithmetic')" class="px-6 py-3 bg-white shadow rounded hover:bg-blue-50">计算技巧</button>
+            <button onclick="loadTopic('Logic')" class="px-6 py-3 bg-white shadow rounded hover:bg-blue-50">逻辑推理</button>
+            <button onclick="loadTopic('Geometry')" class="px-6 py-3 bg-white shadow rounded hover:bg-blue-50">几何图形</button>
+            <button onclick="loadTopic('NumberTheory')" class="px-6 py-3 bg-white shadow rounded hover:bg-blue-50">数论基础</button>
+            <button onclick="loadTopic('WordProblems')" class="px-6 py-3 bg-white shadow rounded hover:bg-blue-50">应用题</button>
+            <button onclick="loadTopic('Combinatorics')" class="px-6 py-3 bg-white shadow rounded hover:bg-blue-50">组合数学</button>
         </div>
 
-        <div id="questionContainer" class="space-y-6">
-            <p class="text-center text-gray-500">请选择年级和专题开始练习</p>
+        <div id="content" class="max-w-3xl mx-auto space-y-4">
+            <p class="text-center text-gray-400">选择一个专题开始探索...</p>
         </div>
     </main>
 
     <script>
-        async function loadTopic(category) {
+        async function loadTopic(cat) {
             const grade = document.getElementById('gradeSelect').value;
-            const container = document.getElementById('questionContainer');
-            container.innerHTML = '<p class="text-center">加载中...</p>';
-
+            const content = document.getElementById('content');
+            content.innerHTML = '<p class="text-center">正在加载题目...</p>';
+            
             try {
-                const res = await fetch(`/api/get-questions?grade=${grade}&category=${category}`);
-                const data = await res.json();
+                // 注意：这里使用相对路径 /api/，Netlify 会根据 toml 映射到 function
+                const resp = await fetch(`/api/get-questions?grade=${grade}&category=${cat}`);
+                const data = await resp.json();
                 
-                if (data.length === 0) {
-                    container.innerHTML = '<p class="text-center">该年级此专题暂无题目。</p>';
+                if (!data.length) {
+                    content.innerHTML = '<p class="text-center text-orange-500">该专题暂无练习题。</p>';
                     return;
                 }
 
-                container.innerHTML = data.map((q, idx) => `
-                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
-                        <p class="text-lg font-medium mb-4">${idx + 1}. ${q.q}</p>
-                        <div class="flex gap-4">
-                            <button onclick="toggleAns(${idx})" class="text-sm text-blue-600 underline">查看答案</button>
-                        </div>
-                        <div id="ans-${idx}" class="hidden mt-4 p-4 bg-green-50 rounded text-green-800">
-                            <strong>答案：</strong> ${q.a}<br>
-                            <strong>解析：</strong> ${q.exp}
+                content.innerHTML = data.map((item, i) => `
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
+                        <div class="text-lg mb-4 font-medium">${i+1}. ${item.q}</div>
+                        <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="text-blue-600 text-sm font-bold">查看答案</button>
+                        <div class="hidden mt-4 p-4 bg-gray-50 rounded border border-dashed border-gray-300">
+                            <p class="text-green-700 font-bold">结果: ${item.a}</p>
+                            <p class="text-gray-600 mt-1 text-sm">解析: ${item.exp}</p>
                         </div>
                     </div>
                 `).join('');
-            } catch (err) {
-                container.innerHTML = '<p class="text-red-500 text-center">数据加载失败。</p>';
+            } catch (e) {
+                content.innerHTML = '<p class="text-center text-red-500 font-bold">数据加载失败。请确保 Netlify Functions 已成功部署。</p>';
             }
-        }
-
-        function toggleAns(id) {
-            const el = document.getElementById(`ans-${id}`);
-            el.classList.toggle('hidden');
         }
     </script>
 </body>
