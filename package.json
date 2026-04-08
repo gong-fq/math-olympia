@@ -1,0 +1,12 @@
+{
+  "name": "primary-math-olympia-plus",
+  "version": "1.0.0",
+  "description": "Primary Math Olympiad Learning Platform",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.0.0"
+  }
+}
